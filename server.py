@@ -3,14 +3,9 @@ import websockets
 import json
 
 # SERVERIP = '127.0.0.1'
-SERVERIP = '192.168.1.33'
+SERVERIP = '192.168.1.222'
 SERVERPORT = '8000'
-SEND_INTERVAL = 10
-
-async def sensor():
-    while True:
-        print("Running task1")
-        await asyncio.sleep(5)
+SEND_INTERVAL = 5
 
 async def handle_websocket(websocket, path):
     # Connection opened
@@ -43,15 +38,6 @@ async def handle_websocket(websocket, path):
             except json.JSONDecodeError:
                 # Invalid JSON received
                 continue
-            # Send sensor data every few second
-            while True:
-                await asyncio.sleep(SEND_INTERVAL)
-                with open('sensor.json', 'r+') as file:
-                    data = json.load(file)
-                    data['Motion'] = data['Motion'] * (-1)                
-                with open('sensor.json', 'w') as file:
-                    json.dump(data, file, indent=1)
-                await websocket.send(json.dumps(data))
     except websockets.exceptions.ConnectionClosedOK:
         # Connection closed
         print(f"Connection from {client_ip}:{client_port} closed")
@@ -118,8 +104,6 @@ def handleRequestDeviceTimerDelete(jsonObj):
     # Read the incomming jsonObj
     position = jsonObj['Position']
     # Write new file
-    print(position)
-    print(type(data))
     data['Data'].pop(position)
     with open('deviceSchedule.json', 'w') as file:
         json.dump(data, file, indent=4)
@@ -127,9 +111,6 @@ def handleRequestDeviceTimerDelete(jsonObj):
 # ----------------------------------------------------------------
 async def main():
     async with websockets.serve(handle_websocket, SERVERIP, SERVERPORT):
-        # Define task for sensor
-        # task1 = asyncio.create_task(sensor())
-        # await asyncio.gather(task1)
         # Websocket Wait forever
         await asyncio.Future()  
 
